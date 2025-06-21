@@ -4,29 +4,21 @@ APP = ['main.py']
 DATA_FILES = []
 OPTIONS = {
     'argv_emulation': True,
-    # Încearcă semi-standalone ca să incluzi toate modulele Python necesare
     'semi_standalone': True,
-
-    # Bundlează întreg pachetul moviepy și dependenţele sale Python
-    'packages': [
-        'moviepy',
-        'imageio',
-        'numpy',
-        'decorator',
-        'tkinter'
+    'frameworks': [
+        '/Library/Frameworks/Python.framework'    # <–– Python-ul de la python.org
     ],
-    # Include explicit modulele folosite
-    'includes': [
-        'moviepy.editor',
-        'moviepy.video.fx.all',
-        'imageio_ffmpeg'    # binding-ul care pornește ffmpeg
-    ],
-
+    'packages': ['moviepy', 'imageio', 'numpy', 'decorator', 'tkinter'],
+    'includes': ['moviepy.editor', 'moviepy.video.fx.all', 'imageio_ffmpeg'],
     'plist': {
         'CFBundleName': 'TikTokConverter',
         'CFBundleIdentifier': 'com.exemplu.tiktokconverter',
         'CFBundleVersion': '1.0.0',
         'CFBundleShortVersionString': '1.0.0',
+        # explicităm unde să caute runtime-ul dacă ceva nu e detectat automat
+        'PyRuntimeLocations': [
+            '@executable_path/../Frameworks/Python.framework/Versions/3.11'
+        ]
     }
 }
 
