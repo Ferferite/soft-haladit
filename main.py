@@ -46,7 +46,7 @@ def select_and_run():
 
 # GUI
 root = Tk()
-root.title("Convertor video → TikTok 1080×1920")
+root.title("Covertor Reclame Haladit")
 root.geometry("400x150")
 
 btn = Button(root, text="Alege video și convertește", command=select_and_run, padx=10, pady=5)
