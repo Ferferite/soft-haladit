@@ -1,8 +1,11 @@
+# .github/workflows/python-app.yml
 name: Build TikTokConverter.app
 
 on:
   push:
-    branches: [ main, master ]
+    branches:
+      - main
+      - master
   workflow_dispatch:
 
 jobs:
@@ -10,7 +13,8 @@ jobs:
     runs-on: macos-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repo
+        uses: actions/checkout@v3
 
       - name: Setup Miniforge (Conda)
         uses: conda-incubator/setup-miniconda@v2
@@ -19,31 +23,34 @@ jobs:
           auto-update-conda: true
           channels: conda-forge
 
-      - name: Create Conda env
+      - name: Create & activate Conda env with Python, tk & ffmpeg
         shell: bash -l {0}
         run: |
           source "${CONDA}/etc/profile.d/conda.sh"
           conda create -y -n build-env python=3.11 tk ffmpeg
+          conda activate build-env
 
-      - name: Install Python deps
+      - name: Install Python deps in Conda env
         shell: bash -l {0}
         run: |
-          source "${CONDA}/etc/profile.d/conda.sh"
           conda activate build-env
           pip install --upgrade pip
           pip install moviepy pyinstaller
 
-      - name: Build .app with PyInstaller
+      - name: Build macOS .app with PyInstaller
         shell: bash -l {0}
         run: |
-          source "${CONDA}/etc/profile.d/conda.sh"
           conda activate build-env
-          FFMPEG="$(which ffmpeg)"
+          FFMPEG_PATH="$(which ffmpeg)"
+          # clean any previous build
           pyinstaller \
+            --clean \
+            --noconfirm \
             --windowed \
             --name TikTokConverter \
-            --add-binary "$FFMPEG:ffmpeg" \
-            --collect-all moviepy \
+            --add-binary "${FFMPEG_PATH}:ffmpeg" \
+            --collect-submodules moviepy \
+            --collect-submodules imageio \
             --collect-all imageio_ffmpeg \
             main.py
 
@@ -52,7 +59,8 @@ jobs:
           cd dist
           zip -r TikTokConverter.app.zip TikTokConverter.app
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
         with:
           name: TikTokConverter.app
           path: dist/TikTokConverter.app.zip
