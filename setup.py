@@ -1,28 +1,22 @@
 from setuptools import setup
 
-APP = ['main.py']   # script-ul tău principal
+APP = ['main.py']
 DATA_FILES = []
 OPTIONS = {
-    # semi‐standalone înseamnă “încorporează Python.framework și pachete pip”
     'semi_standalone': True,
     'argv_emulation': True,
-
-    # bundează aceste pachete întregi
     'packages': [
         'moviepy',
         'imageio',
         'imageio_ffmpeg',
         'numpy',
         'decorator',
-        'tkinter',
+        'tkinter'
     ],
-
-    # asigură-te că includi modulele interne folosite de MoviePy
     'includes': [
         'moviepy.editor',
-        'moviepy.video.fx.all',
+        'moviepy.video.fx.all'
     ],
-
     'plist': {
         'CFBundleName': 'TikTokConverter',
         'CFBundleIdentifier': 'com.exemplu.tiktokconverter',
