@@ -5,20 +5,24 @@ DATA_FILES = []
 OPTIONS = {
     'argv_emulation': True,
     'semi_standalone': True,
-    'frameworks': [
-        '/Library/Frameworks/Python.framework'    # <–– Python-ul de la python.org
+    # don’t list “frameworks” here
+    'packages': [
+        'moviepy',
+        'imageio',
+        'imageio_ffmpeg',
+        'numpy',
+        'decorator',
+        'tkinter'
     ],
-    'packages': ['moviepy', 'imageio', 'numpy', 'decorator', 'tkinter'],
-    'includes': ['moviepy.editor', 'moviepy.video.fx.all', 'imageio_ffmpeg'],
+    'includes': [
+        'moviepy.editor',
+        'moviepy.video.fx.all'
+    ],
     'plist': {
         'CFBundleName': 'TikTokConverter',
         'CFBundleIdentifier': 'com.exemplu.tiktokconverter',
         'CFBundleVersion': '1.0.0',
         'CFBundleShortVersionString': '1.0.0',
-        # explicităm unde să caute runtime-ul dacă ceva nu e detectat automat
-        'PyRuntimeLocations': [
-            '@executable_path/../Frameworks/Python.framework/Versions/3.11'
-        ]
     }
 }
 
