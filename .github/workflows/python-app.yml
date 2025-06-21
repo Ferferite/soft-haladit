@@ -1,11 +1,9 @@
-# .github/workflows/build-macos-app.yml
 name: Build TikTokConverter.app
 
 on:
   push:
     branches:
       - main
-      - master
   workflow_dispatch:
 
 jobs:
@@ -13,46 +11,46 @@ jobs:
     runs-on: macos-latest
 
     steps:
-      # 1. Checkout your repo
-      - name: Checkout code
+      # 1. Checkout codul
+      - name: Checkout repository
         uses: actions/checkout@v3
 
-      # 2. Use the official Python.org installer (includes a proper Python.framework + tkinter)
+      # 2. Setup Python.org (include tkinter implicit)
       - name: Setup Python 3.11
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
           check-latest: true
 
-      # 3. Install system libraries: tcl-tk for tkinter, and ffmpeg for MoviePy
+      # 3. Instalează dependințe de sistem
       - name: Install tcl-tk & ffmpeg
         run: |
           brew update
           brew install tcl-tk ffmpeg
 
-      # 4. Install your Python dependencies (moviepy & py2app)
+      # 4. Instalează py2app & MoviePy
       - name: Install Python packages
         run: |
           python3 -m pip install --upgrade pip
-          pip install moviepy py2app
+          pip install py2app moviepy
 
-      # 5. Build the .app bundle with py2app, semi-standalone mode embeds Python.framework
+      # 5. Build standalone .app (încorporează Python.framework + tkinter + moviepy)
       - name: Build .app with py2app
         run: |
-          python3 setup.py py2app --semi-standalone
+          python3 setup.py py2app --standalone
 
-      # 6. Ad-hoc code-sign the bundle so Gatekeeper won’t flag it as damaged
+      # 6. Code-sign ad-hoc pentru Gatekeeper
       - name: Codesign the .app
         run: |
           codesign --force --deep --sign - dist/TikTokConverter.app
 
-      # 7. Archive with ditto (strips quarantine attributes)
-      - name: Create ZIP with ditto
+      # 7. Zip-uim fără quarantine flags
+      - name: Create ZIP via ditto
         run: |
           ditto -c -k --sequesterRsrc --keepParent \
             dist/TikTokConverter.app TikTokConverter.app.zip
 
-      # 8. Upload the signed, zipped .app as an artifact
+      # 8. Upload artifact
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
