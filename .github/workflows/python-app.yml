@@ -11,38 +11,30 @@ jobs:
     runs-on: macos-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Setup Python 3.11 (with tkinter)
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-          check-latest: true
-
-      - name: Install system deps
+      - name: Install Homebrew Python + deps
         run: |
           brew update
-          brew install tcl-tk ffmpeg
+          brew install python tcl-tk ffmpeg
+          # pune brew-python (cu Framework) în faţă în PATH
+          echo "$(brew --prefix)/bin" >> $GITHUB_PATH
 
       - name: Install py2app & MoviePy
         run: |
           python3 -m pip install --upgrade pip
-          pip install py2app moviepy
+          pip3 install py2app moviepy
 
-      - name: Build .app with py2app
+      - name: Build standalone .app
         run: |
-          # variantă A: dacă în setup.py ai 'standalone': True
-          python3 setup.py py2app
+          python3 setup.py py2app --standalone
 
-          # sau, variantă B: forțezi semi-standalone
-          # python3 setup.py py2app --semi-standalone
-
-      - name: Codesign the .app
+      - name: Code-sign .app ad-hoc
         run: |
           codesign --force --deep --sign - dist/TikTokConverter.app
 
-      - name: Create ZIP via ditto
+      - name: Create quarantine-free ZIP
         run: |
           ditto -c -k --sequesterRsrc --keepParent \
             dist/TikTokConverter.app TikTokConverter.app.zip
