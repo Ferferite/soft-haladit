@@ -1,3 +1,4 @@
+# .github/workflows/python-app.yml
 name: Build TikTokConverter.app
 
 on:
@@ -20,13 +21,12 @@ jobs:
         with:
           miniforge-version: "latest"
           auto-update-conda: true
+          channels: conda-forge
 
       - name: Create & activate Conda env
         run: |
-          # initialize conda in this shell
           source "${CONDA}/etc/profile.d/conda.sh"
-          # creează un mediu care include Python+tkinter+ffmpeg
-          conda create -y -n build-env python=3.11 tcltk=8.6 ffmpeg
+          conda create -y -n build-env python=3.11 tk ffmpeg
           conda activate build-env
 
       - name: Install Python deps
