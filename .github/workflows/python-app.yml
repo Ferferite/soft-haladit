@@ -2,8 +2,7 @@ name: Build TikTokConverter.app
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
   workflow_dispatch:
 
 jobs:
@@ -11,39 +10,31 @@ jobs:
     runs-on: macos-latest
 
     steps:
-      # 1. Checkout
       - uses: actions/checkout@v3
 
-      # 2. Python.org build (include tkinter)
       - uses: actions/setup-python@v4
         with:
           python-version: '3.11'
           check-latest: true
 
-      # 3. System deps: tcl-tk pentru tkinter + ffmpeg
       - run: |
           brew update
           brew install tcl-tk ffmpeg
 
-      # 4. Instalează py2app & MoviePy
       - run: |
           python3 -m pip install --upgrade pip
           pip3 install py2app moviepy
 
-      # 5. Build .app (încorporează Python.framework + dependențe)
-      - run: |
-          python3 setup.py py2app --semi-standalone
+      - name: Build .app with py2app
+        run: python3 setup.py py2app
 
-      # 6. Code-sign ad-hoc
       - run: |
           codesign --force --deep --sign - dist/TikTokConverter.app
 
-      # 7. Zip fără tag-uri de carantină
       - run: |
           ditto -c -k --sequesterRsrc --keepParent \
             dist/TikTokConverter.app TikTokConverter.app.zip
 
-      # 8. Upload artifact
       - uses: actions/upload-artifact@v4
         with:
           name: TikTokConverter.app
