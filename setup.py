@@ -4,14 +4,24 @@ APP = ['main.py']
 DATA_FILES = []
 OPTIONS = {
     'argv_emulation': True,
-    'packages': ['moviepy'],           # <–– bundlează pachetul întreg
+    # Încearcă semi-standalone ca să incluzi toate modulele Python necesare
+    'semi_standalone': True,
+
+    # Bundlează întreg pachetul moviepy și dependenţele sale Python
+    'packages': [
+        'moviepy',
+        'imageio',
+        'numpy',
+        'decorator',
+        'tkinter'
+    ],
+    # Include explicit modulele folosite
     'includes': [
         'moviepy.editor',
         'moviepy.video.fx.all',
-        'imageio',                     # folosit de MoviePy
-        'numpy',                       # la nevoie
-        'decorator'                    # la nevoie
+        'imageio_ffmpeg'    # binding-ul care pornește ffmpeg
     ],
+
     'plist': {
         'CFBundleName': 'TikTokConverter',
         'CFBundleIdentifier': 'com.exemplu.tiktokconverter',
