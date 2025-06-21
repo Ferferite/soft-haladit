@@ -19,26 +19,22 @@ jobs:
       - name: Setup Miniforge (Conda)
         uses: conda-incubator/setup-miniconda@v2
         with:
-          miniforge-version: "latest"
+          miniforge-version: latest
           auto-update-conda: true
           channels: conda-forge
 
-      - name: Create & activate Conda env
+      - name: Create Conda env
         run: |
-          source "${CONDA}/etc/profile.d/conda.sh"
           conda create -y -n build-env python=3.11 tk ffmpeg
-          conda activate build-env
 
       - name: Install Python deps
         run: |
-          conda activate build-env
-          pip install --upgrade pip
-          pip install moviepy pyinstaller
+          conda run -n build-env pip install --upgrade pip
+          conda run -n build-env pip install moviepy pyinstaller
 
       - name: Build .app with PyInstaller
         run: |
-          conda activate build-env
-          pyinstaller \
+          conda run -n build-env pyinstaller \
             --windowed \
             --name TikTokConverter \
             --add-binary "$(which ffmpeg):ffmpeg" \
