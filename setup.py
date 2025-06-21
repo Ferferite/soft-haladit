@@ -2,10 +2,14 @@ from setuptools import setup
 
 APP = ['main.py']
 OPTIONS = {
-    'semi_standalone': True,
     'argv_emulation': True,
+    'standalone': True,     # build complet standalone
     'packages': ['moviepy', 'tkinter'],
-    'includes': ['moviepy.editor', 'moviepy.video.fx.all', 'imageio_ffmpeg'],
+    'includes': [
+        'moviepy.editor',
+        'moviepy.video.fx.all',
+        'imageio_ffmpeg'
+    ],
     'plist': {
         'CFBundleName': 'TikTokConverter',
         'CFBundleIdentifier': 'com.yourdomain.tiktokconverter',
@@ -16,7 +20,6 @@ OPTIONS = {
 
 setup(
     app=APP,
-    name='TikTokConverter',
     options={'py2app': OPTIONS},
     setup_requires=['py2app'],
 )
