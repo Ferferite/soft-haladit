@@ -3,12 +3,12 @@ from setuptools import setup
 APP = ['main.py']
 OPTIONS = {
     'argv_emulation': True,
-    'standalone': True,     # build complet standalone
+    'standalone': True,
     'packages': ['moviepy', 'tkinter'],
     'includes': [
         'moviepy.editor',
         'moviepy.video.fx.all',
-        'imageio_ffmpeg'
+        'imageio_ffmpeg',
     ],
     'plist': {
         'CFBundleName': 'TikTokConverter',
