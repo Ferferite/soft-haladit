@@ -19,20 +19,19 @@ jobs:
       run: |
         brew update
         brew install python ffmpeg
-
-    - name: Verify Python framework
-      run: |
-        python3 -c "import sys; print(sys.executable, sys.framework_prefix)"
+        # Adaugă brew-python în PATH, ca să fie implicit python3
+        echo "$(brew --prefix)/bin" >> $GITHUB_PATH
 
     - name: Install Python packages
       run: |
         python3 -m pip install --upgrade pip
-        pip install moviepy py2app
+        pip3 install moviepy py2app
 
     - name: Build .app with py2app
-      run: python3 setup.py py2app --semi-standalone
+      run: |
+        python3 setup.py py2app --semi-standalone
 
-    - name: Archive TikTokConverter.app
+    - name: Zip TikTokConverter.app
       run: |
         cd dist
         zip -r TikTokConverter.app.zip TikTokConverter.app
