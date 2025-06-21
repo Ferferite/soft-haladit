@@ -1,8 +1,11 @@
-name: Build TikTokConverter.app with PyInstaller
+# .github/workflows/python-app.yml
+name: Build TikTokConverter.app
 
 on:
   push:
-    branches: [ main, master ]
+    branches:
+      - main
+      - master
   workflow_dispatch:
 
 jobs:
@@ -10,19 +13,29 @@ jobs:
     runs-on: macos-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - name: Checkout repo
+      uses: actions/checkout@v3
 
-    - name: Install Homebrew Python & ffmpeg
+    - name: Setup official Python 3.11 (with tkinter)
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        check-latest: true
+
+    - name: Install system deps (ffmpeg + tcl-tk)
       run: |
         brew update
-        brew install python ffmpeg
-        echo "$(brew --prefix)/bin" >> $GITHUB_PATH
+        brew install ffmpeg tcl-tk
 
-    - name: Create venv & install deps
+    - name: Create & activate venv
       run: |
         python3 -m venv venv
         source venv/bin/activate
-        pip install --upgrade pip
+        pip install --upgrade pip wheel
+
+    - name: Install Python packages in venv
+      run: |
+        source venv/bin/activate
         pip install moviepy pyinstaller
 
     - name: Build .app with PyInstaller
@@ -34,11 +47,11 @@ jobs:
           --add-binary "$(which ffmpeg):ffmpeg" \
           main.py
 
-    - name: Archive and upload .app
+    - name: Zip and upload .app
       run: |
         cd dist
         zip -r TikTokConverter.app.zip TikTokConverter.app
-      # apoi upload artifact
+      # Upload artifact
     - uses: actions/upload-artifact@v4
       with:
         name: TikTokConverter.app
