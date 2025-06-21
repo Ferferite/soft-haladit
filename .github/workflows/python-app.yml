@@ -1,5 +1,5 @@
 # .github/workflows/python-app.yml
-name: Build TikTokConverter.app
+name: Build and Codesign TikTokConverter.app
 
 on:
   push:
@@ -52,12 +52,16 @@ jobs:
             --hidden-import imageio_ffmpeg \
             main.py
 
-      - name: Zip TikTokConverter.app
+      - name: Ad-hoc sign the .app
+        run: |
+          codesign --force --deep --sign - dist/TikTokConverter.app
+
+      - name: Archive with ditto (no quarantine)
         run: |
           cd dist
-          zip -r TikTokConverter.app.zip TikTokConverter.app
+          ditto -c -k --sequesterRsrc --keepParent TikTokConverter.app TikTokConverter.app.zip
 
-      - name: Upload artifact
+      - name: Upload signed artifact
         uses: actions/upload-artifact@v4
         with:
           name: TikTokConverter.app
