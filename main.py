@@ -1,28 +1,61 @@
-# setup.py
-from setuptools import setup
+import os
+from tkinter import Tk, Button, Label, filedialog, StringVar
+from moviepy.editor import VideoFileClip, vfx
 
-APP = ['main.py']
-OPTIONS = {
-    'argv_emulation': True,
-    'standalone': True,              # build complet standalone
-    'packages': ['moviepy', 'tkinter'],
-    'includes': [
-        'moviepy.editor',
-        'moviepy.video.fx.all',
-        'imageio_ffmpeg'
-    ],
-    'plist': {
-        'CFBundleName': 'TikTokConverter',
-        'CFBundleIdentifier': 'com.yourdomain.tiktokconverter',
-        'CFBundleVersion': '1.0.0',
-        'CFBundleShortVersionString': '1.0.0',
-    }
-}
+def process_video(input_path, output_path):
+    clip = VideoFileClip(input_path)
+    
+    # 1. Creăm un fundal blurat de dimensiunea 1080×1920
+    blurred = clip.fx(vfx.blur, size=50)
+    bg = blurred.resize(height=1920)
+    x1 = (bg.w - 1080) / 2
+    bg = bg.crop(x1=x1, width=1080)
+    
+    # 2. Pregătim prim-planul (foreground)
+    fg = clip
+    if clip.w != 1080:
+        fg = clip.resize(width=1080)
+    y_pos = (1920 - fg.h) / 2
+    
+    # 3. Suprapunem prim-planul peste fundal și exportăm
+    final = bg.set_duration(fg.duration).overlay(
+        fg.set_position(("center", y_pos))
+    )
+    final.write_videofile(output_path, codec="libx264", audio_codec="aac")
 
-setup(
-    app=APP,
-    name='TikTokConverter',
-    data_files=[],
-    options={'py2app': OPTIONS},
-    setup_requires=['py2app'],
-)
+def select_and_run():
+    inp = filedialog.askopenfilename(
+        title="Selectează video input",
+        filetypes=[("MP4 files", "*.mp4"), ("All files", "*.*")]
+    )
+    if not inp:
+        return
+    
+    out_default = os.path.splitext(inp)[0] + "_tiktok.mp4"
+    out = filedialog.asksaveasfilename(
+        title="Salvează ca",
+        initialfile=os.path.basename(out_default),
+        defaultextension=".mp4",
+        filetypes=[("MP4 files", "*.mp4")]
+    )
+    if not out:
+        return
+    
+    status.set("Procesare în curs…")
+    root.update()
+    process_video(inp, out)
+    status.set(f"Finalizat: {os.path.basename(out)}")
+
+# --- Inițializare GUI ---
+root = Tk()
+root.title("Convertor video → TikTok 1080×1920")
+root.geometry("400x150")
+
+btn = Button(root, text="Alege video și convertește", command=select_and_run, padx=10, pady=5)
+btn.pack(pady=20)
+
+status = StringVar(value="Așteptare…")
+lbl = Label(root, textvariable=status)
+lbl.pack()
+
+root.mainloop()
