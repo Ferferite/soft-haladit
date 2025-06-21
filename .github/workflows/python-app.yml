@@ -13,49 +13,51 @@ jobs:
     runs-on: macos-latest
 
     steps:
-    - name: Checkout repo
-      uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-    - name: Setup official Python 3.11 (with tkinter)
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
-        check-latest: true
+      - name: Setup Official Python 3.11 (with tkinter)
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          check-latest: true
 
-    - name: Install system deps (ffmpeg + tcl-tk)
-      run: |
-        brew update
-        brew install ffmpeg tcl-tk
+      - name: Install Homebrew dependencies
+        run: |
+          brew update
+          brew install ffmpeg tcl-tk
+          echo "$(brew --prefix)/bin" >> $GITHUB_PATH
 
-    - name: Create & activate venv
-      run: |
-        python3 -m venv venv
-        source venv/bin/activate
-        pip install --upgrade pip wheel
+      - name: Create & activate venv
+        run: |
+          python3 -m venv venv
+          source venv/bin/activate
+          pip install --upgrade pip wheel
 
-    - name: Install Python packages in venv
-      run: |
-        source venv/bin/activate
-        pip install moviepy pyinstaller
+      - name: Install Python packages in venv
+        run: |
+          source venv/bin/activate
+          pip install moviepy pyinstaller
 
-        - name: Build .app with PyInstaller
-      run: |
-        source venv/bin/activate
-        pyinstaller \
-          --windowed \
-          --name TikTokConverter \
-          --add-binary "$(which ffmpeg):ffmpeg" \
-          --hidden-import moviepy.editor \
-          --hidden-import moviepy.video.fx.all \
-          --hidden-import imageio_ffmpeg \
-          main.py
+      - name: Build .app with PyInstaller
+        run: |
+          source venv/bin/activate
+          pyinstaller \
+            --windowed \
+            --name TikTokConverter \
+            --add-binary "$(which ffmpeg):ffmpeg" \
+            --hidden-import moviepy.editor \
+            --hidden-import moviepy.video.fx.all \
+            --hidden-import imageio_ffmpeg \
+            main.py
 
-    - name: Zip and upload .app
-      run: |
-        cd dist
-        zip -r TikTokConverter.app.zip TikTokConverter.app
-      # Upload artifact
-    - uses: actions/upload-artifact@v4
-      with:
-        name: TikTokConverter.app
-        path: dist/TikTokConverter.app.zip
+      - name: Zip TikTokConverter.app
+        run: |
+          cd dist
+          zip -r TikTokConverter.app.zip TikTokConverter.app
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: TikTokConverter.app
+          path: dist/TikTokConverter.app.zip
