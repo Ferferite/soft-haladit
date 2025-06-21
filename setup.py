@@ -1,13 +1,17 @@
 from setuptools import setup
 
-APP = ['main.py']   # aici pui numele script-ului principal
+APP = ['main.py']
 DATA_FILES = []
 OPTIONS = {
     'argv_emulation': True,
-    'includes': ['moviepy.editor', 'moviepy.video.fx.all', 'tkinter'],
-    'packages': ['moviepy', 'tkinter'],
-    # dacă ai iconiţă, de ex. resources/icon.icns
-    # 'iconfile': 'resources/icon.icns',
+    'packages': ['moviepy'],           # <–– bundlează pachetul întreg
+    'includes': [
+        'moviepy.editor',
+        'moviepy.video.fx.all',
+        'imageio',                     # folosit de MoviePy
+        'numpy',                       # la nevoie
+        'decorator'                    # la nevoie
+    ],
     'plist': {
         'CFBundleName': 'TikTokConverter',
         'CFBundleIdentifier': 'com.exemplu.tiktokconverter',
