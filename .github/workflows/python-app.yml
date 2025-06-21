@@ -1,11 +1,8 @@
-# .github/workflows/python-app.yml
-name: Build and Codesign TikTokConverter.app
+name: Build TikTokConverter.app
 
 on:
   push:
-    branches:
-      - main
-      - master
+    branches: [ main, master ]
   workflow_dispatch:
 
 jobs:
@@ -13,8 +10,7 @@ jobs:
     runs-on: macos-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
       - name: Setup Miniforge (Conda)
         uses: conda-incubator/setup-miniconda@v2
@@ -42,27 +38,21 @@ jobs:
         run: |
           source "${CONDA}/etc/profile.d/conda.sh"
           conda activate build-env
-          FFMPEG_PATH="$(which ffmpeg)"
+          FFMPEG="$(which ffmpeg)"
           pyinstaller \
             --windowed \
             --name TikTokConverter \
-            --add-binary "$FFMPEG_PATH:ffmpeg" \
-            --hidden-import moviepy.editor \
-            --hidden-import moviepy.video.fx.all \
-            --hidden-import imageio_ffmpeg \
+            --add-binary "$FFMPEG:ffmpeg" \
+            --collect-all moviepy \
+            --collect-all imageio_ffmpeg \
             main.py
 
-      - name: Ad-hoc sign the .app
-        run: |
-          codesign --force --deep --sign - dist/TikTokConverter.app
-
-      - name: Archive with ditto (no quarantine)
+      - name: Zip TikTokConverter.app
         run: |
           cd dist
-          ditto -c -k --sequesterRsrc --keepParent TikTokConverter.app TikTokConverter.app.zip
+          zip -r TikTokConverter.app.zip TikTokConverter.app
 
-      - name: Upload signed artifact
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: TikTokConverter.app
           path: dist/TikTokConverter.app.zip
