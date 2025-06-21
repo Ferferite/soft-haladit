@@ -1,4 +1,3 @@
-# .github/workflows/python-app.yml
 name: Build TikTokConverter.app
 
 on:
@@ -16,32 +15,27 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Setup Official Python 3.11 (with tkinter)
-        uses: actions/setup-python@v4
+      - name: Setup Miniconda
+        uses: conda-incubator/setup-miniconda@v2
         with:
           python-version: '3.11'
-          check-latest: true
+          auto-update-conda: true
 
-      - name: Install Homebrew dependencies
+      - name: Create Conda env & install Python deps
         run: |
-          brew update
-          brew install ffmpeg tcl-tk
-          echo "$(brew --prefix)/bin" >> $GITHUB_PATH
-
-      - name: Create & activate venv
-        run: |
-          python3 -m venv venv
-          source venv/bin/activate
-          pip install --upgrade pip wheel
-
-      - name: Install Python packages in venv
-        run: |
-          source venv/bin/activate
+          conda create -y -n build-env python=3.11 tcl-tk pip
+          source "$(conda info --base)/etc/profile.d/conda.sh"
+          conda activate build-env
+          pip install --upgrade pip
           pip install moviepy pyinstaller
+
+      - name: Install FFmpeg
+        run: brew install ffmpeg
 
       - name: Build .app with PyInstaller
         run: |
-          source venv/bin/activate
+          source "$(conda info --base)/etc/profile.d/conda.sh"
+          conda activate build-env
           pyinstaller \
             --windowed \
             --name TikTokConverter \
