@@ -15,26 +15,28 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Setup Miniconda
+      - name: Setup Miniforge (Conda)
         uses: conda-incubator/setup-miniconda@v2
         with:
-          python-version: '3.11'
+          miniforge-version: "latest"
           auto-update-conda: true
 
-      - name: Create Conda env & install Python deps
+      - name: Create & activate Conda env
         run: |
-          conda create -y -n build-env python=3.11 tcl-tk pip
-          source "$(conda info --base)/etc/profile.d/conda.sh"
+          # initialize conda in this shell
+          source "${CONDA}/etc/profile.d/conda.sh"
+          # creează un mediu care include Python+tkinter+ffmpeg
+          conda create -y -n build-env python=3.11 tcltk=8.6 ffmpeg
+          conda activate build-env
+
+      - name: Install Python deps
+        run: |
           conda activate build-env
           pip install --upgrade pip
           pip install moviepy pyinstaller
 
-      - name: Install FFmpeg
-        run: brew install ffmpeg
-
       - name: Build .app with PyInstaller
         run: |
-          source "$(conda info --base)/etc/profile.d/conda.sh"
           conda activate build-env
           pyinstaller \
             --windowed \
