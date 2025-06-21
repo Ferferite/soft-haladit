@@ -1,8 +1,11 @@
+# .github/workflows/python-app.yml
 name: Build TikTokConverter.app
 
 on:
-  push:
-    branches: [ main ]
+  push:        # rulează la orice push
+    branches:
+      - main
+      - master
   workflow_dispatch:
 
 jobs:
@@ -10,26 +13,24 @@ jobs:
     runs-on: macos-latest
 
     steps:
-    - name: Checkout TikTokConverter repo
-      uses: actions/checkout@v3
+    - uses: actions/checkout@v3
 
-    - name: Debug: list repo contents
+    - name: List repo contents   # debug
       run: ls -R .
 
-    - name: Configure Python 3.11 environment
-      uses: actions/setup-python@v4
+    - uses: actions/setup-python@v4
       with:
         python-version: '3.11'
 
     - name: Install MoviePy & py2app
       run: |
-        python -m pip install --upgrade pip
+        pip install --upgrade pip
         pip install moviepy py2app
 
-    - name: Homebrew: install ffmpeg
+    - name: Install ffmpeg
       run: brew install ffmpeg
 
-    - name: Run py2app to package .app
+    - name: Build .app with py2app
       run: python3 setup.py py2app
 
     - name: Zip TikTokConverter.app
@@ -37,8 +38,7 @@ jobs:
         cd dist
         zip -r TikTokConverter.app.zip TikTokConverter.app
 
-    - name: Upload TikTokConverter.app.zip
-      uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v4
       with:
         name: TikTokConverter.app
         path: dist/TikTokConverter.app.zip
