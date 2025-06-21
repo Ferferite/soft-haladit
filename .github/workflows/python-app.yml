@@ -11,46 +11,42 @@ jobs:
     runs-on: macos-latest
 
     steps:
-      # 1. Checkout codul
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # 2. Setup Python.org (include tkinter implicit)
-      - name: Setup Python 3.11
+      - name: Setup Python 3.11 (with tkinter)
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
           check-latest: true
 
-      # 3. Instalează dependințe de sistem
-      - name: Install tcl-tk & ffmpeg
+      - name: Install system deps
         run: |
           brew update
           brew install tcl-tk ffmpeg
 
-      # 4. Instalează py2app & MoviePy
-      - name: Install Python packages
+      - name: Install py2app & MoviePy
         run: |
           python3 -m pip install --upgrade pip
           pip install py2app moviepy
 
-      # 5. Build standalone .app (încorporează Python.framework + tkinter + moviepy)
       - name: Build .app with py2app
         run: |
-          python3 setup.py py2app --standalone
+          # variantă A: dacă în setup.py ai 'standalone': True
+          python3 setup.py py2app
 
-      # 6. Code-sign ad-hoc pentru Gatekeeper
+          # sau, variantă B: forțezi semi-standalone
+          # python3 setup.py py2app --semi-standalone
+
       - name: Codesign the .app
         run: |
           codesign --force --deep --sign - dist/TikTokConverter.app
 
-      # 7. Zip-uim fără quarantine flags
       - name: Create ZIP via ditto
         run: |
           ditto -c -k --sequesterRsrc --keepParent \
             dist/TikTokConverter.app TikTokConverter.app.zip
 
-      # 8. Upload artifact
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
