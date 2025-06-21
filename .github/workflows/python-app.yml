@@ -24,20 +24,29 @@ jobs:
           channels: conda-forge
 
       - name: Create Conda env
+        shell: bash -l {0}
         run: |
+          source "${CONDA}/etc/profile.d/conda.sh"
           conda create -y -n build-env python=3.11 tk ffmpeg
 
       - name: Install Python deps
+        shell: bash -l {0}
         run: |
-          conda run -n build-env pip install --upgrade pip
-          conda run -n build-env pip install moviepy pyinstaller
+          source "${CONDA}/etc/profile.d/conda.sh"
+          conda activate build-env
+          pip install --upgrade pip
+          pip install moviepy pyinstaller
 
       - name: Build .app with PyInstaller
+        shell: bash -l {0}
         run: |
-          conda run -n build-env pyinstaller \
+          source "${CONDA}/etc/profile.d/conda.sh"
+          conda activate build-env
+          FFMPEG_PATH="$(which ffmpeg)"
+          pyinstaller \
             --windowed \
             --name TikTokConverter \
-            --add-binary "$(which ffmpeg):ffmpeg" \
+            --add-binary "$FFMPEG_PATH:ffmpeg" \
             --hidden-import moviepy.editor \
             --hidden-import moviepy.video.fx.all \
             --hidden-import imageio_ffmpeg \
