@@ -1,4 +1,4 @@
-# .github/workflows/python-app.yml
+# .github/workflows/build-macos-app.yml
 name: Build TikTokConverter.app
 
 on:
@@ -13,54 +13,48 @@ jobs:
     runs-on: macos-latest
 
     steps:
-      - name: Checkout repo
+      # 1. Checkout your repo
+      - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Setup Miniforge (Conda)
-        uses: conda-incubator/setup-miniconda@v2
+      # 2. Use the official Python.org installer (includes a proper Python.framework + tkinter)
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v4
         with:
-          miniforge-version: latest
-          auto-update-conda: true
-          channels: conda-forge
+          python-version: '3.11'
+          check-latest: true
 
-      - name: Create & activate Conda env with Python, tk & ffmpeg
-        shell: bash -l {0}
+      # 3. Install system libraries: tcl-tk for tkinter, and ffmpeg for MoviePy
+      - name: Install tcl-tk & ffmpeg
         run: |
-          source "${CONDA}/etc/profile.d/conda.sh"
-          conda create -y -n build-env python=3.11 tk ffmpeg
-          conda activate build-env
+          brew update
+          brew install tcl-tk ffmpeg
 
-      - name: Install Python deps in Conda env
-        shell: bash -l {0}
+      # 4. Install your Python dependencies (moviepy & py2app)
+      - name: Install Python packages
         run: |
-          conda activate build-env
-          pip install --upgrade pip
-          pip install moviepy pyinstaller
+          python3 -m pip install --upgrade pip
+          pip install moviepy py2app
 
-      - name: Build macOS .app with PyInstaller
-        shell: bash -l {0}
+      # 5. Build the .app bundle with py2app, semi-standalone mode embeds Python.framework
+      - name: Build .app with py2app
         run: |
-          conda activate build-env
-          FFMPEG_PATH="$(which ffmpeg)"
-          # clean any previous build
-          pyinstaller \
-            --clean \
-            --noconfirm \
-            --windowed \
-            --name TikTokConverter \
-            --add-binary "${FFMPEG_PATH}:ffmpeg" \
-            --collect-submodules moviepy \
-            --collect-submodules imageio \
-            --collect-all imageio_ffmpeg \
-            main.py
+          python3 setup.py py2app --semi-standalone
 
-      - name: Zip TikTokConverter.app
+      # 6. Ad-hoc code-sign the bundle so Gatekeeper won’t flag it as damaged
+      - name: Codesign the .app
         run: |
-          cd dist
-          zip -r TikTokConverter.app.zip TikTokConverter.app
+          codesign --force --deep --sign - dist/TikTokConverter.app
 
+      # 7. Archive with ditto (strips quarantine attributes)
+      - name: Create ZIP with ditto
+        run: |
+          ditto -c -k --sequesterRsrc --keepParent \
+            dist/TikTokConverter.app TikTokConverter.app.zip
+
+      # 8. Upload the signed, zipped .app as an artifact
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: TikTokConverter.app
-          path: dist/TikTokConverter.app.zip
+          path: TikTokConverter.app.zip
