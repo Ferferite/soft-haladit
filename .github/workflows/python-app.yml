@@ -1,3 +1,4 @@
+# .github/workflows/build-macos-app.yml
 name: Build TikTokConverter.app
 
 on:
@@ -11,36 +12,41 @@ jobs:
     runs-on: macos-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      # 1. Clonăm codul
+      - uses: actions/checkout@v3
 
-      - name: Install Homebrew Python + deps
-        run: |
+      # 2. Setup Python.org build (include tkinter)
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          check-latest: true
+
+      # 3. Instalăm doar bibliotecile native necesare:
+      #    tcl-tk pentru tkinter și ffmpeg pentru MoviePy
+      - run: |
           brew update
-          brew install python tcl-tk ffmpeg
-          # pune brew-python (cu Framework) în faţă în PATH
-          echo "$(brew --prefix)/bin" >> $GITHUB_PATH
+          brew install tcl-tk ffmpeg
 
-      - name: Install py2app & MoviePy
-        run: |
+      # 4. Instalăm py2app și moviepy în mediul Python.org
+      - run: |
           python3 -m pip install --upgrade pip
           pip3 install py2app moviepy
 
-      - name: Build standalone .app
-        run: |
+      # 5. Construim bundle-ul standalone (încorporează Python.framework, tkinter, moviepy, imageio_ffmpeg):
+      - run: |
           python3 setup.py py2app --standalone
 
-      - name: Code-sign .app ad-hoc
-        run: |
+      # 6. Semnăm ad-hoc ca să nu fie marcat “damaged”
+      - run: |
           codesign --force --deep --sign - dist/TikTokConverter.app
 
-      - name: Create quarantine-free ZIP
-        run: |
+      # 7. Creăm un ZIP fără tag-uri de carantină
+      - run: |
           ditto -c -k --sequesterRsrc --keepParent \
             dist/TikTokConverter.app TikTokConverter.app.zip
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
+      # 8. Urcăm artifact-ul gata de descărcat
+      - uses: actions/upload-artifact@v4
         with:
           name: TikTokConverter.app
           path: TikTokConverter.app.zip
